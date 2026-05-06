@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Windows 11 Lock Screen Simulator</title>
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #fcfcfc;
+}
+
+* {
+    transition: all 0.2s ease;
+    -webkit-user-drag: none;
+    user-select: none;
+}
+
+/* === Layout === */
+.container {
+    display: grid;
+    grid-template-columns: 20% 60% 20%; /* nice clean ratios */
+    height: 100vh;
+}
+
+/* === Left Table === */
+.left-panel {
+    background-color: #fafafa;
+    border-right: 1px solid #cccccc;
+    padding: 1.5vw; /* scales nicely */
+}
+
+#usersScroll {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0px 10px;
+}
+
+
+.user-boxes {
+    background-color: #e0e0e0;
+    border-radius: 1.5vh / 1.5vh;
+    height: 8vh; /* instead of 60px */
+    text-align: center;
+    vertical-align: middle;
+}
+
+
+
+.cell-button {
+    width: 100%;
+    height: 100%;
+
+    border: none;
+    background: transparent;
+
+    padding: 0;
+    margin: 0;
+
+    cursor: pointer;
+}
+.cell-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10%;
+}
+
+.selectedBox {
+    transform: scale(1.05);
+    background-color: #f0f0f0;
+}
+
+.user-boxes:hover {
+    transform: scale(1.1);
+}
+
+.radio {
+    accent-color: blue;
+    width: 20px;
+    height: 20px;
+
+}
+
+.slider {
+    accent-color: blue;
+    height: 20px;
+    width: 7vw;
+
+}
+
+
+.username-display {
+    width: 40%;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 2vh;
+    text-align: left;
+}
+
+/* === Circle Images === */
+.circle-img {
+    width: 3vw;
+    height: 3vw;
+    min-width: 30px;
+    min-height: 30px;
+    border-radius: 50%;
+}
+
+
+/* === Main Center === */
+.center-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.main-div {
+    position: relative; /* IMPORTANT */
+    width: 40vw;
+    height: 40vh; /* instead of 300px */
+    margin-bottom: 3vh;
+    border: 2px solid black;
+}
+
+/* === Bottom Row (images + inputs) === */
+.bottom-row {
+    display: flex;
+    justify-content: center;
+    gap: 5vw;       /* instead of 40px */
+    width: 100%;
+    margin: 5vw;    /* clean scaling */
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;      /* horizontal center */
+    justify-content: center;  /* vertical center */
+    height: 100%;
+}
+.low-content {
+    margin: 10px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+}
+
+.min-button {
+    border: none;
+    background: none;
+    color: blue;
+    text-decoration: underline;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    word-spacing: -2px;
+}
+
+.min-button:hover {
+    transform: scale(1.2);
+}
+
+@font-face {
+  font-family: 'GoogleIcons';
+  src: url('https://fonts.gstatic.com/s/materialicons/v142/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2') format('woff2');
+  /* ONLY apply this font to the Private Use Area (where icons live) */
+  unicode-range: U+E000-F8FF; 
+}
+
+#internet-select {
+    width: 60%;
+    aspect-ratio: 4.5;
+    font-family: 'GoogleIcons', 'Arial', sans-serif;
+    font-size: 20px;
+    vertical-align: middle;
+    border-radius: 0.3vw;
+    background-color: #eaeaea;
+    border-width: 0;
+    padding: 0.5vw;
+}
+
+option {
+    width: 100%;
+    height: 100%;
+}
+
+/* === Right Output === */
+.right-panel {
+    background-color: #fafafa;
+    border-left: 1px solid #ccc;
+    padding: 1.5vw; /* scales nicely */
+}
+
+.output-div {
+    width: 100%;
+    height: 100%;
+}
+
+/* === Plus cell === */
+.plus {
+    font-size: 3vw;
+    font-weight: bold;
+    color: #303030;
+}
+
+.hidden {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+.shadowed {
+    box-shadow: 0px 0px 25px -10px #000000;
+}
+
+
+
+#outputText {
+    white-space: pre-wrap;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 15px;
+  letter-spacing: 0px;
+  word-spacing: -2px;
+  color: #303030;
+  font-weight: 400;
+}
+
+#background-display {
+    height: 15vh;
+}
+
+#icon-display {
+    width: 6vw;
+    height: 6vw;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+#name-input {
+    width: 12vw;
+    min-width: 120px;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    font-size: 15px;
+    letter-spacing: 0px;
+    word-spacing: -2px;
+    padding: 3px;
+    border-radius: 7px;
+    border-style: solid;
+    border-color: #303030;
+    border-width: 2px
+}
+
+#fullscreen-main {
+    width: 50px;
+    height: 50px;
+    background-color: transparent;
+    border-width: 0;
+    display: grid;
+    place-items: center; /* Shorthand for horizontal and vertical centering */
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 999;
+}
+
+#fullscreen-main:hover {
+    transform: scale(1.2);
+}
+
+#fullscreen-image {
+    width: 100%;
+    aspect-ratio: 1;
+}
+
+
+#loginFrame {
+    opacity: 0;
+    grid-area: 1 / 1;   /* ✅ same cell = overlays image */
+    z-index: 3;
+    background-color: transparent;
+    justify-self: center;
+    align-self: center;
+    width: fit-content;
+    height: fit-content; /* Optional, as height is 'auto' by default */
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;   /* stack vertically */
+    align-items: center;      /* center horizontally (X axis) */
+}
+
+#simulation-frame {
+    position: absolute;
+    inset: 0;
+
+    display: grid;
+
+    overflow: hidden; /* ✅ fixes image spilling out */
+}
+
+#simulation-background {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    /* We handle transition via opacity on the front image now */
+    transition: filter 0.25s ease, transform 0.25s ease; 
+}
+
+/* Add this for the secondary background used for crossfading */
+#simulation-background-temp {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+    z-index: -3; /* Sits behind the main one */
+}
+
+#simulation-time {
+    grid-area: 1 / 1;   /* ✅ same cell = overlays image */
+    
+    justify-self: center;
+    align-self: start;
+    margin-top: 160px;
+
+    font-size: 120px;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #FFFFFF;
+    font-weight: 600;
+    z-index: 1;
+    transition: all 0.15s ease;
+}
+
+#simulation-date {
+    grid-area: 1 / 1;   /* ✅ same cell = overlays image */
+    
+    justify-self: center;
+    align-self: start;
+    margin-top: 300px;
+
+    font-size: 30px;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #FFFFFF;
+    font-weight: 600;
+    z-index: 1;
+    transition: all 0.15s ease;
+}
+
+#simulation-icon {
+    border-radius: 50%;
+    height: 200px;
+    width: 200px;
+}
+
+#simulation-name {
+    font-size: 30px;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #FFFFFF;
+    font-weight: 650;
+    margin: 15px;
+}
+
+#simulation-pin-image {
+    width: 40px;
+    height: auto;
+}
+
+#simulation-think {
+    width: 40px;
+    height: auto;
+}
+
+#simulation-pin-label {
+    font-size: 25px;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #FFFFFF;
+    font-weight: 600;
+    margin: 15px;
+}
+
+#simulation-input-container {
+    position: relative;
+
+    width: 280px;
+    height: 26px;
+    margin: 10px;
+
+    display: flex;
+    justify-content: center; /* centers input */
+    align-items: center;
+
+    background-color: transparent;
+}
+
+#simulation-input {
+    position: relative;
+
+    border-width: 2px;
+    border-color: #eeeeee30 #eeeeee30 #eeeeee;
+    border-radius: 4.4px;
+    border-style: solid;
+
+    background-color: #20202033;
+    background-clip: padding-box;
+
+    height: 19px;
+    width: 276px;
+
+    font-size: 16px;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #fff;
+
+    padding: 7px;
+}
+
+#simulation-input::placeholder {
+    color: white;
+    opacity: 1;
+}
+
+#simulation-input:hover {
+    background-color: #202020bb;
+}
+
+#simulation-input:focus {
+    background-color: #202020bb;
+    outline: none;
+    border-color: #eeeeee30 #eeeeee30 #21aded;
+}
+
+#simulation-input.force-active {
+    background-color: #202020bb;
+    border-color: #eeeeee30 #eeeeee30 #21aded;
+}
+
+#simulation-input-buttons {
+    width: fit-content;
+    height: fit-content;
+    position: absolute;
+    right: 6px;
+    z-index: 2;
+    background-color: transparent;
+    top: 50%;
+    transform: translateY(-50%); /* 👈 centers vertically */
+    display: flex;          /* 👈 REQUIRED for gap + order */
+    align-items: center;    /* vertical alignment */
+    gap: 7px;
+}
+
+#simulation-password-input {
+    height: 25px;
+    width: 32px;
+    background-color: transparent;
+    border-width: 0;
+    border-radius: 3px;
+
+    display: flex;
+    justify-content: center; /* Centers horizontally */
+    align-items: center;
+    cursor: pointer;
+}
+
+#simulation-password-input:hover {
+    background-color: #21aded;
+    #simulation-arrow-image {
+        fill: black;
+    }
+}
+
+#simulation-arrow-image {
+    fill: white;
+    height: 15px;
+}
+
+#simulation-show-input {
+    height: 25px;
+    width: 30px;
+    background-color: transparent;
+    border-width: 0;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+#simulation-show-input:hover {
+    background-color: #58585880;
+}
+
+#simulation-show-input:active {
+    background-color: #68686880;
+}
+
+#simulation-show-image {
+    width: 15px;
+    height: 15px;
+    fill: white;
+}
+
+#simulation-forgot {
+    margin: 20px;
+
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    font-size: 15px;
+    color: white;
+    font-weight: 450;
+    cursor: pointer;
+}
+
+#simulation-forgot:hover {
+    color: #e9e9e9;
+    transition: none;
+}
+
+#simulation-hover {
+    z-index: 100;
+    transform: translateX(-50%);
+
+    color: #fff;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+
+    background-color: #434040;
+    padding: 6px 8px;
+    border-color: black;
+    border-width: 1px;
+    border-style: groove;
+
+    width: fit-content;
+    height: fit-content;
+
+    position: fixed; /* or absolute */
+    pointer-events: none; /* prevents blocking mouse */
+}
+
+#simulation-wrong {
+    margin: 20px;
+
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    font-size: 15px;
+    color: white;
+    font-weight: 450;
+}
+
+#simulation-again {
+    font-size: 14px;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #fff;
+    font-weight: 500;
+
+    margin: 10px;
+    padding: 4px;
+    width: 114px;
+
+    border-radius: 4px;
+
+    background-color: #f0f0f050;
+    border-width: 2px;
+    border-color: #ffffff00;
+    border-style: solid;
+    transition: none;
+}
+
+#simulation-again:hover {
+    border-color: #ffffff99;
+}
+
+#simulation-again:active {
+    outline: 2.5px solid #fff;
+    outline-offset: 1px;
+}
+
+#simulation-again.force-active {
+    outline: 2.5px solid #fff;
+    outline-offset: 1px;
+}
+
+#simulation-users {
+    width: 170px;
+    height: fit-content;
+    z-index: 5;
+
+    grid-area: 1/1;
+    margin: 25px;
+    justify-self: left;
+    align-self: end;
+    opacity: 0;
+}
+
+.simulation-user {
+    display: flex;
+    align-items: center; /* Centers children vertically */
+    width: 100%;
+    height: 60px;
+
+    background-color: #bebece00;
+
+    border-width: 0;
+    border-radius: 5px;
+}
+
+.simulation-user-button {
+    display: flex;
+    align-items: center; /* Centers children vertically */
+    background-color: #bebece00;
+
+    border-width: 0;
+    border-radius: 5px;
+    width: 100%;
+    height: 100%;
+
+    transition: none;
+    transition: transform 0.2s ease;
+}
+
+.simulation-user-selected {
+    background-color: #bebece43;
+}
+
+.simulation-user:hover {
+    background-color: #bebece43;
+}
+
+.simulation-user-button:active {
+    transform: scale(0.95);
+}
+
+.simulation-user-icon {
+    width: 50px;
+    height: 50px;
+    margin: 0px 7px;
+    border-radius: 50%;
+}
+
+.simulation-user-name {
+    font-size: 15px;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #fff;
+    font-weight: 600;
+    width: 99px;
+    text-align: left;
+    overflow-wrap: break-word;
+}
+
+#simulation-buttons {
+    width: fit-content;
+    height: 42px;
+    z-index: 5;
+
+    grid-area: 1/1;
+    margin: 20px;
+    justify-self: right;
+    align-self: end;
+    opacity: 0;
+    display: flex;
+}
+
+.simulation-button {
+    height: 42px;
+    width: 42px;
+    background-color: #f0f0f000;
+    border-radius: 5px;
+    transition: none;
+    margin-left: 4px;
+    display: flex;
+    justify-content: center; /* Horizontal centering */
+    align-items: center;
+    border-radius: 6px;
+    border: none;
+}
+
+.simulation-button:hover {
+    background-color: #f0f0f071;
+}
+
+.simulation-button:active {
+    background-color: #f0f0f0c0;
+}
+
+.simulation-button-image {
+    height: 18px;
+    width: auto;
+    fill: white;
+    stroke: white;
+    stroke-width: 3px;
+}
+
+.hidden-path {
+    fill: transparent !important;
+    stroke: transparent !important;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- LEFT -->
+    <div class="left-panel">
+        <h3 style="text-align:center;">Users</h3>
+        <table id="usersScroll">
+            <tr id="add-row">
+                <td onclick="addUser()" class="plus user-boxes">+</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center-panel">
+        <h1 style="text-align:center;">Windows 11 Lock Screen Simulator</h1>
+        <div class="main-div shadowed">
+            <!-- main frame -->
+            <button onclick="fullscreenMain()" id="fullscreen-main">
+                <img id="fullscreen-image" src="https://cdn-icons-png.flaticon.com/512/4785/4785776.png"/>
+            </button>
+            <div id="simulation-frame" onclick="openLogin()">
+                <!-- SIMULATION HERE -->
+                <img id="simulation-background-temp" src="https://i.postimg.cc/2yP4VfQh/default-Background.jpg" draggable="false"/>
+                <img id="simulation-background" src="https://i.postimg.cc/2yP4VfQh/default-Background.jpg" draggable="false"/>
+                <label id="simulation-time">12:00</label>
+                <label id="simulation-date">Monday, January 1</label>
+
+                <div id="loginFrame" class="hidden">
+                    <img id="simulation-icon" src="https://i.postimg.cc/zGjYSDyy/usericon.png" draggable="false"/>
+                    <label id="simulation-name">User</label>
+                    <video autoplay muted id="simulation-pin-image" draggable="false">
+                        <source src="https://github.com/PrPunk/WEBFILES/raw/refs/heads/main/VidSmall.webm" type="video/webm"/>
+                    </video>
+                    <label id="simulation-pin-label">Enter Your PIN</label>
+                    <div id="simulation-input-container">
+                        <input id="simulation-input" type="text" autocomplete="off" spellcheck="false" placeholder="PIN" draggable="false">
+                        <div id="simulation-input-buttons">
+                            <button id="simulation-show-input" class="hidden">
+                                <svg id="simulation-show-image" draggable="false" viewBox="0 0 72 72">
+                                    <path d="M0 38.99L0 38.99Q0 38.60 0.11 38.21L0.11 38.21Q1.16 34.24 3.11 30.74Q5.06 27.25 7.72 24.33Q10.37 21.41 13.59 19.13Q16.80 16.84 20.44 15.24Q24.08 13.64 28.02 12.81Q31.96 11.99 36 11.99L36 11.99Q40.01 11.99 43.93 12.81Q47.85 13.64 51.49 15.22Q55.13 16.80 58.38 19.11Q61.63 21.41 64.28 24.31Q66.94 27.21 68.89 30.69Q70.84 34.17 71.89 38.14L71.89 38.14Q72 38.53 72 38.95L72 38.95Q72 40.22 71.14 41.08Q70.28 41.94 69.01 41.94L69.01 41.94Q67.96 41.94 67.20 41.34Q66.45 40.75 66.09 39.76L66.09 39.76Q65.78 38.78 65.48 37.93Q65.18 37.09 64.86 36.26Q64.55 35.44 64.16 34.63Q63.77 33.82 63.21 32.91L63.21 32.91Q61.14 29.43 58.20 26.67Q55.27 23.91 51.75 21.99Q48.23 20.07 44.31 19.04Q40.39 18 36.39 18L36.39 18L35.61 18Q31.61 18 27.69 19.04Q23.77 20.07 20.25 22.01Q16.73 23.94 13.78 26.70Q10.83 29.46 8.79 32.94L8.79 32.94Q8.23 33.86 7.84 34.68Q7.45 35.51 7.14 36.32Q6.82 37.13 6.52 37.97Q6.22 38.81 5.91 39.80L5.91 39.80Q5.55 40.78 4.82 41.40Q4.08 42.01 2.99 42.01L2.99 42.01Q2.39 42.01 1.85 41.77Q1.30 41.52 0.90 41.12Q0.49 40.71 0.25 40.17Q0 39.62 0 38.99ZM18 42.01L18 42.01L18 41.66Q18 38.00 19.46 34.79Q20.92 31.57 23.40 29.18Q25.88 26.79 29.13 25.40Q32.38 24.01 36 24.01L36 24.01Q39.73 24.01 43.01 25.42Q46.30 26.82 48.74 29.27Q51.19 31.71 52.59 35.00Q54 38.29 54 42.01L54 42.01Q54 45.74 52.59 49.03Q51.19 52.31 48.74 54.76Q46.30 57.20 43.01 58.61Q39.73 60.01 36 60.01L36 60.01Q32.27 60.01 28.99 58.61Q25.70 57.20 23.26 54.76Q20.81 52.31 19.41 49.03Q18 45.74 18 42.01ZM47.99 42.01L47.99 42.01L47.99 41.77Q47.99 39.34 47.02 37.20Q46.05 35.05 44.40 33.45Q42.75 31.85 40.57 30.92Q38.39 29.99 36 29.99L36 29.99Q33.50 29.99 31.32 30.94Q29.14 31.89 27.53 33.52Q25.91 35.16 24.96 37.35Q24.01 39.55 24.01 42.01L24.01 42.01Q24.01 44.51 24.96 46.69Q25.91 48.87 27.53 50.48Q29.14 52.10 31.32 53.05Q33.50 54 36 54L36 54Q38.46 54 40.66 53.05Q42.86 52.10 44.47 50.48Q46.09 48.87 47.04 46.69Q47.99 44.51 47.99 42.01Z"/>
+                                </svg>
+                            </button>
+                            <button id="simulation-password-input" class="hidden" onclick="checkPassword()">
+                                <svg id="simulation-arrow-image" draggable="false" viewBox="0 0 72 72">
+                                    <path d="M38.99 65.99L38.99 65.99Q37.76 65.99 36.88 65.11Q36 64.23 36 63L36 63Q36 61.77 36.88 60.89L36.88 60.89L61.77 36L2.99 36Q1.76 36 0.88 35.12Q0 34.24 0 33.01L0 33.01Q0 32.38 0.23 31.83Q0.46 31.29 0.86 30.88Q1.27 30.48 1.81 30.23Q2.36 29.99 2.99 29.99L2.99 29.99L61.73 29.99L36.88 5.13Q36 4.25 36 2.99L36 2.99Q36 1.76 36.88 0.88Q37.76 0 38.99 0L38.99 0Q40.25 0 41.13 0.88L41.13 0.88L71.02 30.76Q71.51 31.25 71.75 31.78Q72 32.31 72 33.01L72 33.01Q72 33.71 71.74 34.24Q71.47 34.77 70.98 35.26L70.98 35.26L41.13 65.11Q40.25 65.99 38.99 65.99Z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <label id="simulation-forgot">I forgot my PIN</label>
+
+                    <label id="simulation-wrong" class="hidden">The PIN is incorrect. Try again.</label>
+
+                    <img id="simulation-think" class="hidden" src="https://i.postimg.cc/G2WpwMHH/windows-loandig-cargando.gif"/>
+
+                    <button id="simulation-again" class="hidden" onclick="tryAgain()">OK</button>
+                </div>
+
+                <table id="simulation-users" class="hidden">
+                    <tbody/>
+                </table>
+
+                <div id="simulation-buttons" class="hidden">
+                    <button id="simulation-internet-button" class="simulation-button">
+                        <svg class="simulation-button-image" viewBox="0 0 72 72">
+                            <path id="simulation-internet-behind" class="hidden-path" fill="grey" stroke="grey" d="M36 13.50L36 13.50Q32.20 13.50 28.49 14.26Q24.79 15.01 21.30 16.47Q17.82 17.93 14.66 20.04Q11.50 22.15 8.82 24.86L8.82 24.86Q7.49 26.19 6.43 27.65Q5.38 29.11 4.18 30.52L4.18 30.52Q3.76 31.01 3.38 31.25Q2.99 31.50 2.32 31.50L2.32 31.50Q1.37 31.50 0.72 30.85Q0.07 30.20 0.07 29.25L0.07 29.25Q0.07 28.58 0.46 27.98L0.46 27.98Q3.23 23.55 7.19 20.04Q11.14 16.52 15.82 14.06Q20.50 11.60 25.65 10.30Q30.80 9 36 9L36 9Q41.17 9 46.34 10.30Q51.50 11.60 56.16 14.06Q60.82 16.52 64.78 20.04Q68.73 23.55 71.54 27.98L71.54 27.98Q71.93 28.58 71.93 29.25L71.93 29.25Q71.93 30.20 71.28 30.85Q70.63 31.50 69.68 31.50L69.68 31.50Q69.08 31.50 68.64 31.24Q68.20 30.97 67.82 30.52L67.82 30.52Q67.54 30.13 67.25 29.78L67.25 29.78L66.94 29.25Q66.66 28.86 66.38 28.51L66.38 28.51Q65.64 27.53 64.83 26.63Q64.02 25.73 63.18 24.86L63.18 24.86Q60.47 22.15 57.32 20.04Q54.18 17.93 50.71 16.47Q47.25 15.01 43.52 14.26Q39.80 13.50 36 13.50ZM36 27L36 27Q33.40 27 30.83 27.56Q28.27 28.13 25.89 29.20Q23.52 30.27 21.39 31.82Q19.27 33.36 17.54 35.30L17.54 35.30Q16.70 36.25 16.01 37.30Q15.33 38.36 14.55 39.38L14.55 39.38Q14.13 39.90 13.73 40.20Q13.32 40.50 12.62 40.50L12.62 40.50Q11.71 40.50 11.04 39.83Q10.37 39.16 10.37 38.25L10.37 38.25Q10.37 37.69 10.65 37.13L10.65 37.13Q12.45 33.79 15.22 31.08Q18 28.37 21.38 26.47Q24.75 24.57 28.49 23.54Q32.24 22.50 36 22.50L36 22.50Q39.73 22.50 43.49 23.54Q47.25 24.57 50.63 26.47Q54 28.37 56.78 31.08Q59.55 33.79 61.35 37.13L61.35 37.13Q61.63 37.69 61.63 38.25L61.63 38.25Q61.63 39.16 60.96 39.83Q60.29 40.50 59.38 40.50L59.38 40.50Q58.68 40.50 58.27 40.20Q57.87 39.90 57.45 39.38L57.45 39.38Q56.67 38.36 55.99 37.30Q55.30 36.25 54.46 35.30L54.46 35.30Q52.73 33.36 50.61 31.82Q48.48 30.27 46.11 29.20Q43.73 28.13 41.17 27.56Q38.60 27 36 27ZM36 40.50L36 40.50Q34.03 40.50 32.24 41.04Q30.45 41.59 28.76 42.61L28.76 42.61Q27.81 43.21 27.12 43.80Q26.44 44.40 25.89 45.07Q25.35 45.74 24.86 46.49Q24.36 47.25 23.80 48.20L23.80 48.20Q23.45 48.80 22.96 49.15Q22.46 49.50 21.76 49.50L21.76 49.50Q20.81 49.50 20.16 48.83Q19.51 48.16 19.51 47.21L19.51 47.21Q19.51 46.76 19.72 46.27L19.72 46.27Q20.74 44.02 22.50 42.12Q24.26 40.22 26.44 38.87Q28.62 37.51 31.08 36.76Q33.54 36 36 36L36 36Q38.53 36 40.99 36.74Q43.45 37.48 45.62 38.81Q47.78 40.15 49.50 42.05Q51.22 43.95 52.28 46.27L52.28 46.27Q52.49 46.76 52.49 47.21L52.49 47.21Q52.49 48.13 51.82 48.81Q51.15 49.50 50.24 49.50L50.24 49.50Q49.54 49.50 49.04 49.15Q48.55 48.80 48.20 48.20L48.20 48.20Q47.64 47.25 47.14 46.49Q46.65 45.74 46.09 45.07Q45.53 44.40 44.84 43.80Q44.16 43.21 43.21 42.61L43.21 42.61Q41.55 41.59 39.74 41.04Q37.93 40.50 36 40.50ZM30.38 54L30.38 54Q30.38 52.84 30.83 51.82Q31.29 50.80 32.04 50.04Q32.80 49.29 33.82 48.83Q34.84 48.38 36 48.38L36 48.38Q37.16 48.38 38.18 48.83Q39.20 49.29 39.96 50.04Q40.71 50.80 41.17 51.82Q41.63 52.84 41.63 54L41.63 54Q41.63 55.16 41.17 56.18Q40.71 57.20 39.96 57.96Q39.20 58.71 38.18 59.17Q37.16 59.63 36 59.63L36 59.63Q34.84 59.63 33.82 59.17Q32.80 58.71 32.04 57.96Q31.29 57.20 30.83 56.18Q30.38 55.16 30.38 54Z"/>
+                            <path id="simulation-internet-3" d="M36 13.50L36 13.50Q32.20 13.50 28.49 14.26Q24.79 15.01 21.30 16.47Q17.82 17.93 14.66 20.04Q11.50 22.15 8.82 24.86L8.82 24.86Q7.49 26.19 6.43 27.65Q5.38 29.11 4.18 30.52L4.18 30.52Q3.76 31.01 3.38 31.25Q2.99 31.50 2.32 31.50L2.32 31.50Q1.37 31.50 0.72 30.85Q0.07 30.20 0.07 29.25L0.07 29.25Q0.07 28.58 0.46 27.98L0.46 27.98Q3.23 23.55 7.19 20.04Q11.14 16.52 15.82 14.06Q20.50 11.60 25.65 10.30Q30.80 9 36 9L36 9Q41.17 9 46.34 10.30Q51.50 11.60 56.16 14.06Q60.82 16.52 64.78 20.04Q68.73 23.55 71.54 27.98L71.54 27.98Q71.93 28.58 71.93 29.25L71.93 29.25Q71.93 30.20 71.28 30.85Q70.63 31.50 69.68 31.50L69.68 31.50Q69.08 31.50 68.64 31.24Q68.20 30.97 67.82 30.52L67.82 30.52Q67.54 30.13 67.25 29.78L67.25 29.78L66.94 29.25Q66.66 28.86 66.38 28.51L66.38 28.51Q65.64 27.53 64.83 26.63Q64.02 25.73 63.18 24.86L63.18 24.86Q60.47 22.15 57.32 20.04Q54.18 17.93 50.71 16.47Q47.25 15.01 43.52 14.26Q39.80 13.50 36 13.50ZM36 27L36 27Q33.40 27 30.83 27.56Q28.27 28.13 25.89 29.20Q23.52 30.27 21.39 31.82Q19.27 33.36 17.54 35.30L17.54 35.30Q16.70 36.25 16.01 37.30Q15.33 38.36 14.55 39.38L14.55 39.38Q14.13 39.90 13.73 40.20Q13.32 40.50 12.62 40.50L12.62 40.50Q11.71 40.50 11.04 39.83Q10.37 39.16 10.37 38.25L10.37 38.25Q10.37 37.69 10.65 37.13L10.65 37.13Q12.45 33.79 15.22 31.08Q18 28.37 21.38 26.47Q24.75 24.57 28.49 23.54Q32.24 22.50 36 22.50L36 22.50Q39.73 22.50 43.49 23.54Q47.25 24.57 50.63 26.47Q54 28.37 56.78 31.08Q59.55 33.79 61.35 37.13L61.35 37.13Q61.63 37.69 61.63 38.25L61.63 38.25Q61.63 39.16 60.96 39.83Q60.29 40.50 59.38 40.50L59.38 40.50Q58.68 40.50 58.27 40.20Q57.87 39.90 57.45 39.38L57.45 39.38Q56.67 38.36 55.99 37.30Q55.30 36.25 54.46 35.30L54.46 35.30Q52.73 33.36 50.61 31.82Q48.48 30.27 46.11 29.20Q43.73 28.13 41.17 27.56Q38.60 27 36 27ZM36 40.50L36 40.50Q34.03 40.50 32.24 41.04Q30.45 41.59 28.76 42.61L28.76 42.61Q27.81 43.21 27.12 43.80Q26.44 44.40 25.89 45.07Q25.35 45.74 24.86 46.49Q24.36 47.25 23.80 48.20L23.80 48.20Q23.45 48.80 22.96 49.15Q22.46 49.50 21.76 49.50L21.76 49.50Q20.81 49.50 20.16 48.83Q19.51 48.16 19.51 47.21L19.51 47.21Q19.51 46.76 19.72 46.27L19.72 46.27Q20.74 44.02 22.50 42.12Q24.26 40.22 26.44 38.87Q28.62 37.51 31.08 36.76Q33.54 36 36 36L36 36Q38.53 36 40.99 36.74Q43.45 37.48 45.62 38.81Q47.78 40.15 49.50 42.05Q51.22 43.95 52.28 46.27L52.28 46.27Q52.49 46.76 52.49 47.21L52.49 47.21Q52.49 48.13 51.82 48.81Q51.15 49.50 50.24 49.50L50.24 49.50Q49.54 49.50 49.04 49.15Q48.55 48.80 48.20 48.20L48.20 48.20Q47.64 47.25 47.14 46.49Q46.65 45.74 46.09 45.07Q45.53 44.40 44.84 43.80Q44.16 43.21 43.21 42.61L43.21 42.61Q41.55 41.59 39.74 41.04Q37.93 40.50 36 40.50ZM30.38 54L30.38 54Q30.38 52.84 30.83 51.82Q31.29 50.80 32.04 50.04Q32.80 49.29 33.82 48.83Q34.84 48.38 36 48.38L36 48.38Q37.16 48.38 38.18 48.83Q39.20 49.29 39.96 50.04Q40.71 50.80 41.17 51.82Q41.63 52.84 41.63 54L41.63 54Q41.63 55.16 41.17 56.18Q40.71 57.20 39.96 57.96Q39.20 58.71 38.18 59.17Q37.16 59.63 36 59.63L36 59.63Q34.84 59.63 33.82 59.17Q32.80 58.71 32.04 57.96Q31.29 57.20 30.83 56.18Q30.38 55.16 30.38 54Z"/>
+                            <path id="simulation-internet-2" class="hidden-path" d="M36 27L36 27Q33.40 27 30.83 27.56Q28.27 28.13 25.89 29.20Q23.52 30.27 21.39 31.82Q19.27 33.36 17.54 35.30L17.54 35.30Q16.70 36.25 16.01 37.30Q15.33 38.36 14.55 39.38L14.55 39.38Q14.13 39.90 13.73 40.20Q13.32 40.50 12.62 40.50L12.62 40.50Q11.71 40.50 11.04 39.83Q10.37 39.16 10.37 38.25L10.37 38.25Q10.37 37.69 10.65 37.13L10.65 37.13Q12.45 33.79 15.22 31.08Q18 28.37 21.38 26.47Q24.75 24.57 28.49 23.54Q32.24 22.50 36 22.50L36 22.50Q39.73 22.50 43.49 23.54Q47.25 24.57 50.63 26.47Q54 28.37 56.78 31.08Q59.55 33.79 61.35 37.13L61.35 37.13Q61.63 37.69 61.63 38.25L61.63 38.25Q61.63 39.16 60.96 39.83Q60.29 40.50 59.38 40.50L59.38 40.50Q58.68 40.50 58.27 40.20Q57.87 39.90 57.45 39.38L57.45 39.38Q56.67 38.36 55.99 37.30Q55.30 36.25 54.46 35.30L54.46 35.30Q52.73 33.36 50.61 31.82Q48.48 30.27 46.11 29.20Q43.73 28.13 41.17 27.56Q38.60 27 36 27ZM36 40.50L36 40.50Q34.03 40.50 32.24 41.04Q30.45 41.59 28.76 42.61L28.76 42.61Q27.81 43.21 27.12 43.80Q26.44 44.40 25.89 45.07Q25.35 45.74 24.86 46.49Q24.36 47.25 23.80 48.20L23.80 48.20Q23.45 48.80 22.96 49.15Q22.46 49.50 21.76 49.50L21.76 49.50Q20.81 49.50 20.16 48.83Q19.51 48.16 19.51 47.21L19.51 47.21Q19.51 46.76 19.72 46.27L19.72 46.27Q20.74 44.02 22.50 42.12Q24.26 40.22 26.44 38.87Q28.62 37.51 31.08 36.76Q33.54 36 36 36L36 36Q38.53 36 40.99 36.74Q43.45 37.48 45.62 38.81Q47.78 40.15 49.50 42.05Q51.22 43.95 52.28 46.27L52.28 46.27Q52.49 46.76 52.49 47.21L52.49 47.21Q52.49 48.13 51.82 48.81Q51.15 49.50 50.24 49.50L50.24 49.50Q49.54 49.50 49.04 49.15Q48.55 48.80 48.20 48.20L48.20 48.20Q47.64 47.25 47.14 46.49Q46.65 45.74 46.09 45.07Q45.53 44.40 44.84 43.80Q44.16 43.21 43.21 42.61L43.21 42.61Q41.55 41.59 39.74 41.04Q37.93 40.50 36 40.50ZM30.38 54L30.38 54Q30.38 52.84 30.83 51.82Q31.29 50.80 32.04 50.04Q32.80 49.29 33.82 48.83Q34.84 48.38 36 48.38L36 48.38Q37.16 48.38 38.18 48.83Q39.20 49.29 39.96 50.04Q40.71 50.80 41.17 51.82Q41.63 52.84 41.63 54L41.63 54Q41.63 55.16 41.17 56.18Q40.71 57.20 39.96 57.96Q39.20 58.71 38.18 59.17Q37.16 59.63 36 59.63L36 59.63Q34.84 59.63 33.82 59.17Q32.80 58.71 32.04 57.96Q31.29 57.20 30.83 56.18Q30.38 55.16 30.38 54Z"/>
+                            <path id="simulation-internet-1" class="hidden-path" d="M36 40.50L36 40.50Q34.03 40.50 32.24 41.04Q30.45 41.59 28.76 42.61L28.76 42.61Q27.81 43.21 27.12 43.80Q26.44 44.40 25.89 45.07Q25.35 45.74 24.86 46.49Q24.36 47.25 23.80 48.20L23.80 48.20Q23.45 48.80 22.96 49.15Q22.46 49.50 21.76 49.50L21.76 49.50Q20.81 49.50 20.16 48.83Q19.51 48.16 19.51 47.21L19.51 47.21Q19.51 46.76 19.72 46.27L19.72 46.27Q20.78 43.95 22.50 42.05Q24.22 40.15 26.38 38.81Q28.55 37.48 31.01 36.74Q33.47 36 36 36L36 36Q38.53 36 40.99 36.74Q43.45 37.48 45.62 38.81Q47.78 40.15 49.50 42.05Q51.22 43.95 52.28 46.27L52.28 46.27Q52.49 46.76 52.49 47.21L52.49 47.21Q52.49 48.13 51.82 48.81Q51.15 49.50 50.24 49.50L50.24 49.50Q49.54 49.50 49.04 49.15Q48.55 48.80 48.20 48.20L48.20 48.20Q47.64 47.25 47.14 46.49Q46.65 45.74 46.09 45.07Q45.53 44.40 44.84 43.80Q44.16 43.21 43.21 42.61L43.21 42.61Q41.55 41.59 39.74 41.04Q37.93 40.50 36 40.50ZM30.38 54L30.38 54Q30.38 52.84 30.83 51.82Q31.29 50.80 32.04 50.04Q32.80 49.29 33.82 48.83Q34.84 48.38 36 48.38L36 48.38Q37.16 48.38 38.18 48.83Q39.20 49.29 39.96 50.04Q40.71 50.80 41.17 51.82Q41.63 52.84 41.63 54L41.63 54Q41.63 55.16 41.17 56.18Q40.71 57.20 39.96 57.96Q39.20 58.71 38.18 59.17Q37.16 59.63 36 59.63L36 59.63Q34.84 59.63 33.82 59.17Q32.80 58.71 32.04 57.96Q31.29 57.20 30.83 56.18Q30.38 55.16 30.38 54Z"/>
+                            <path id="simulation-internet-0" class="hidden-path" d="M35.65 72L35.65 72Q30.73 71.96 26.17 70.66Q21.62 69.36 17.67 66.99Q13.71 64.62 10.44 61.33Q7.17 58.04 4.85 54.05Q2.53 50.06 1.27 45.49Q0 40.92 0 36L0 36Q0 31.04 1.28 26.44Q2.57 21.83 4.92 17.84Q7.28 13.85 10.56 10.56Q13.85 7.28 17.84 4.92Q21.83 2.57 26.44 1.28Q31.04 0 36 0L36 0Q40.89 0 45.46 1.28Q50.03 2.57 54.02 4.89Q58.01 7.21 61.31 10.46Q64.62 13.71 66.97 17.67Q69.33 21.62 70.65 26.17Q71.96 30.73 72 35.65L72 35.65Q70.91 34.31 69.70 33.13Q68.48 31.96 67.08 30.94L67.08 30.94Q66.90 29.92 66.67 28.95Q66.45 27.98 66.16 27L66.16 27Q65.60 27 65.04 27L65.04 27L62.72 27.04L60.47 27.04Q59.91 27.04 59.31 27L59.31 27Q59.13 27 58.82 26.93Q58.50 26.86 58.13 26.75Q57.76 26.65 57.41 26.54Q57.06 26.44 56.85 26.37L56.85 26.37Q55.58 26.12 54.32 26.00Q53.05 25.88 51.75 25.88L51.75 25.88L51.71 25.88Q50.98 25.88 50.24 25.93Q49.50 25.98 48.76 26.05L48.76 26.05Q47.18 26.23 45.67 26.58L45.67 26.58Q45.28 26.68 44.93 26.84Q44.58 27 44.19 27L44.19 27L23.10 27Q22.82 29.25 22.66 31.48Q22.50 33.71 22.50 36L22.50 36Q22.50 38.29 22.66 40.52Q22.82 42.75 23.10 45L23.10 45L26.75 45Q26.44 46.13 26.26 47.25Q26.09 48.38 25.98 49.50L25.98 49.50L23.87 49.50Q24.26 51.29 24.75 53.03Q25.24 54.77 25.91 56.46L25.91 56.46Q26.02 56.71 26.12 56.99L26.12 56.99L26.47 57.76Q26.65 58.18 26.79 58.57L26.79 58.57Q27 59.13 27.16 59.70Q27.32 60.26 27.53 60.86L27.53 60.86Q28.13 62.54 28.99 64.09Q29.85 65.64 30.90 67.08L30.90 67.08L30.94 67.08Q31.96 68.48 33.13 69.70Q34.31 70.91 35.65 72ZM23.87 22.50L48.13 22.50Q47.85 21.20 47.32 19.35Q46.79 17.51 46.02 15.52Q45.25 13.54 44.23 11.55Q43.21 9.56 41.94 8.00Q40.68 6.43 39.20 5.47Q37.72 4.50 36 4.50L36 4.50Q34.28 4.50 32.80 5.47Q31.32 6.43 30.06 8.00Q28.79 9.56 27.77 11.55Q26.75 13.54 25.98 15.52Q25.21 17.51 24.68 19.35Q24.15 21.20 23.87 22.50L23.87 22.50ZM7.56 22.50L7.56 22.50L19.27 22.50Q19.69 20.43 20.27 18.26Q20.85 16.10 21.64 13.99Q22.43 11.88 23.45 9.91Q24.47 7.95 25.77 6.22L25.77 6.22Q22.78 7.24 20.07 8.84Q17.37 10.44 15.03 12.53Q12.69 14.63 10.79 17.14Q8.89 19.65 7.56 22.50ZM52.73 22.50L64.44 22.50Q63.07 19.62 61.17 17.10Q59.27 14.59 56.95 12.52Q54.63 10.44 51.93 8.86Q49.22 7.28 46.23 6.22L46.23 6.22Q47.53 7.95 48.55 9.91Q49.57 11.88 50.36 13.99Q51.15 16.10 51.73 18.26Q52.31 20.43 52.73 22.50L52.73 22.50ZM5.80 45L18.53 45Q18 40.54 18 36L18 36Q18 33.71 18.12 31.48Q18.25 29.25 18.56 27L18.56 27L5.80 27Q4.50 31.32 4.50 36L4.50 36Q4.50 40.68 5.80 45L5.80 45ZM72 51.75L72 51.75Q72 55.93 70.40 59.63Q68.80 63.32 66.06 66.06Q63.32 68.80 59.63 70.40Q55.93 72 51.75 72L51.75 72Q47.53 72 43.84 70.42Q40.15 68.84 37.41 66.09Q34.66 63.35 33.08 59.66Q31.50 55.97 31.50 51.75L31.50 51.75Q31.50 47.57 33.10 43.88Q34.70 40.18 37.44 37.44Q40.18 34.70 43.88 33.10Q47.57 31.50 51.75 31.50L51.75 31.50Q54.53 31.50 57.11 32.22Q59.70 32.94 61.95 34.26Q64.20 35.58 66.06 37.44Q67.92 39.30 69.24 41.55Q70.56 43.80 71.28 46.39Q72 48.97 72 51.75ZM39.16 61.17L39.16 61.17L61.17 39.16Q59.03 37.51 56.60 36.76Q54.18 36 51.47 36L51.47 36Q48.38 36 45.58 37.27Q42.79 38.53 40.66 40.66Q38.53 42.79 37.27 45.58Q36 48.38 36 51.47L36 51.47Q36 54.18 36.76 56.60Q37.51 59.03 39.16 61.17ZM64.34 42.33L64.34 42.33L42.33 64.34Q44.47 65.99 46.90 66.74Q49.32 67.50 52.03 67.50L52.03 67.50Q55.13 67.50 57.92 66.23Q60.71 64.97 62.84 62.84Q64.97 60.71 66.23 57.92Q67.50 55.13 67.50 52.03L67.50 52.03Q67.50 49.32 66.74 46.90Q65.99 44.47 64.34 42.33ZM19.27 49.50L7.56 49.50Q8.89 52.35 10.79 54.86Q12.69 57.38 15.01 59.47Q17.33 61.56 20.04 63.16Q22.75 64.76 25.73 65.78L25.73 65.78Q24.47 64.02 23.45 62.05Q22.43 60.08 21.64 57.99Q20.85 55.90 20.27 53.75Q19.69 51.61 19.27 49.50L19.27 49.50Z"/>
+                            <path id="simulation-internet-4" class="hidden-path" d="M9 54L54 54L54 58.50L49.50 58.50L49.50 67.50L54 67.50L54 72L15.75 72Q14.84 72 14.17 71.33Q13.50 70.66 13.50 69.75L13.50 69.75Q13.50 68.84 14.17 68.17Q14.84 67.50 15.75 67.50L15.75 67.50L22.50 67.50L22.50 58.50L8.82 58.50Q7.07 58.50 5.47 57.78Q3.87 57.06 2.65 55.85Q1.44 54.63 0.72 53.03Q0 51.43 0 49.68L0 49.68L0 8.82Q0 7.07 0.72 5.47Q1.44 3.87 2.65 2.65Q3.87 1.44 5.47 0.72Q7.07 0 8.82 0L8.82 0L46.20 0Q45 2.04 45 4.50L45 4.50L9 4.50Q8.05 4.50 7.24 4.85Q6.43 5.20 5.82 5.82Q5.20 6.43 4.85 7.24Q4.50 8.05 4.50 9L4.50 9L4.50 49.50Q4.50 50.45 4.85 51.28Q5.20 52.10 5.80 52.70Q6.40 53.30 7.22 53.65Q8.05 54 9 54L9 54ZM56.25 0L65.25 0Q66.62 0 67.85 0.53Q69.08 1.05 70.01 1.99Q70.95 2.92 71.47 4.15Q72 5.38 72 6.75L72 6.75L72 24.75Q72 26.12 71.47 27.35Q70.95 28.58 70.01 29.51Q69.08 30.45 67.85 30.97Q66.62 31.50 65.25 31.50L65.25 31.50L63 31.50L63 69.75Q63 70.66 62.33 71.33Q61.66 72 60.75 72L60.75 72Q59.84 72 59.17 71.33Q58.50 70.66 58.50 69.75L58.50 69.75L58.50 31.50L56.25 31.50Q54.88 31.50 53.65 30.97Q52.42 30.45 51.49 29.51Q50.55 28.58 50.03 27.35Q49.50 26.12 49.50 24.75L49.50 24.75L49.50 6.75Q49.50 5.38 50.03 4.15Q50.55 2.92 51.49 1.99Q52.42 1.05 53.65 0.53Q54.88 0 56.25 0L56.25 0ZM65.25 4.50L56.25 4.50Q55.34 4.50 54.67 5.17Q54 5.84 54 6.75L54 6.75L54 9L67.50 9L67.50 6.75Q67.50 5.84 66.83 5.17Q66.16 4.50 65.25 4.50L65.25 4.50ZM56.25 27L65.25 27Q66.16 27 66.83 26.33Q67.50 25.66 67.50 24.75L67.50 24.75L67.50 13.50L54 13.50L54 24.75Q54 25.66 54.67 26.33Q55.34 27 56.25 27L56.25 27ZM27 58.50L27 67.50L45 67.50L45 58.50L27 58.50Z"/>
+                        </svg>
+                    </button>
+                    <button id="simulation-accessability-button" class="simulation-button">
+                        <svg class="simulation-button-image" viewBox="0 0 72 72">
+                            <path d="M67.50 18.04L67.50 18.04Q67.50 19.23 67.13 20.37Q66.76 21.52 66.09 22.48Q65.43 23.45 64.49 24.19Q63.56 24.93 62.44 25.35L62.44 25.35L49.50 30.27L49.50 41.06Q49.50 41.17 49.99 42.54Q50.48 43.91 51.24 45.97Q52.00 48.02 52.89 50.47Q53.79 52.91 54.62 55.14Q55.44 57.38 56.06 59.10Q56.67 60.82 56.88 61.42L56.88 61.42Q57.09 62.09 57.23 62.75Q57.38 63.42 57.38 64.13L57.38 64.13Q57.38 65.78 56.76 67.20Q56.14 68.63 55.05 69.70Q53.96 70.77 52.52 71.38Q51.08 72 49.46 72L49.46 72Q48.23 72 47.09 71.63Q45.95 71.26 44.96 70.58Q43.98 69.89 43.24 68.92Q42.50 67.96 42.08 66.80L42.08 66.80L36 50.03L29.88 66.80Q29.46 67.99 28.72 68.94Q27.98 69.89 27.02 70.58Q26.05 71.26 24.91 71.63Q23.77 72 22.50 72L22.50 72Q20.88 72 19.44 71.38Q18 70.77 16.93 69.70Q15.86 68.63 15.24 67.18Q14.63 65.74 14.63 64.13L14.63 64.13Q14.63 63.42 14.77 62.75Q14.91 62.09 15.12 61.42L15.12 61.42Q15.26 60.96 15.66 59.87Q16.07 58.78 16.61 57.29Q17.16 55.79 17.81 54.04Q18.46 52.28 19.11 50.50Q19.76 48.73 20.37 47.06Q20.99 45.39 21.46 44.09Q21.94 42.79 22.22 41.98Q22.50 41.17 22.50 41.10L22.50 41.10L22.50 30.27L9.56 25.35Q8.40 24.93 7.47 24.17Q6.54 23.41 5.89 22.46Q5.24 21.52 4.87 20.37Q4.50 19.23 4.50 18L4.50 18Q4.50 16.38 5.12 14.94Q5.73 13.50 6.80 12.43Q7.88 11.36 9.30 10.74Q10.72 10.13 12.38 10.13L12.38 10.13Q13.82 10.13 15.19 10.65L15.19 10.65L25.21 14.48Q24.96 13.64 24.86 12.76Q24.75 11.88 24.75 11.00L24.75 11.00Q24.75 8.72 25.66 6.71Q26.58 4.71 28.13 3.22Q29.67 1.72 31.71 0.86Q33.75 0 36 0L36 0Q38.25 0 40.29 0.86Q42.33 1.72 43.88 3.22Q45.42 4.71 46.34 6.71Q47.25 8.72 47.25 11.00L47.25 11.00Q47.25 11.88 47.14 12.76Q47.04 13.64 46.76 14.48L46.76 14.48L56.81 10.65Q58.18 10.13 59.63 10.13L59.63 10.13Q61.24 10.13 62.68 10.74Q64.13 11.36 65.20 12.45Q66.27 13.54 66.88 14.98Q67.50 16.42 67.50 18.04ZM29.25 11.25L29.25 11.25Q29.25 12.62 29.78 13.85Q30.30 15.08 31.24 16.01Q32.17 16.95 33.40 17.47Q34.63 18 36 18L36 18Q37.37 18 38.60 17.47Q39.83 16.95 40.76 16.01Q41.70 15.08 42.22 13.85Q42.75 12.62 42.75 11.25L42.75 11.25Q42.75 9.88 42.22 8.65Q41.70 7.42 40.76 6.49Q39.83 5.55 38.60 5.03Q37.37 4.50 36 4.50L36 4.50Q34.63 4.50 33.40 5.03Q32.17 5.55 31.24 6.49Q30.30 7.42 29.78 8.65Q29.25 9.88 29.25 11.25ZM63 17.96L63 17.96Q63 17.30 62.74 16.68Q62.47 16.07 62.00 15.61Q61.52 15.15 60.91 14.89Q60.29 14.63 59.63 14.63L59.63 14.63Q58.99 14.63 58.43 14.84L58.43 14.84L39.59 22.01Q38.74 22.32 37.83 22.50Q36.91 22.68 36 22.68L36 22.68Q34.21 22.68 32.38 22.01L32.38 22.01L13.57 14.84Q12.97 14.63 12.38 14.63L12.38 14.63Q10.93 14.63 9.97 15.59Q9 16.56 9 18L9 18Q9 19.05 9.58 19.92Q10.16 20.78 11.18 21.16L11.18 21.16L25.56 26.61Q26.23 26.86 26.61 27.44Q27 28.02 27 28.72L27 28.72L27 41.48Q27 41.94 26.86 42.26L26.86 42.26L19.34 62.96Q19.13 63.56 19.13 64.13L19.13 64.13Q19.13 65.53 20.11 66.52Q21.09 67.50 22.50 67.50L22.50 67.50Q23.55 67.50 24.42 66.90Q25.28 66.30 25.66 65.29L25.66 65.29L31.78 48.52Q32.27 47.11 33.38 46.32Q34.49 45.53 36 45.53L36 45.53Q37.51 45.53 38.62 46.32Q39.73 47.11 40.22 48.52L40.22 48.52L46.34 65.29Q46.72 66.30 47.57 66.90Q48.41 67.50 49.50 67.50L49.50 67.50Q50.91 67.50 51.89 66.52Q52.88 65.53 52.88 64.13L52.88 64.13Q52.88 63.56 52.66 62.96L52.66 62.96L45.14 42.26Q45 41.94 45 41.48L45 41.48L45 28.72Q45 28.02 45.39 27.44Q45.77 26.86 46.44 26.61L46.44 26.61L60.82 21.16Q61.84 20.78 62.42 19.92Q63 19.05 63 17.96Z"/>
+                        </svg>
+                    </button>
+                    <button id="simulation-power-button" class="simulation-button">
+                        <svg class="simulation-button-image" viewBox="0 0 72 72">
+                            <path d="M33.75 29.25L33.75 29.25L33.75 2.25Q33.75 1.34 34.42 0.67Q35.09 0 36 0L36 0Q36.91 0 37.58 0.67Q38.25 1.34 38.25 2.25L38.25 2.25L38.25 29.25Q38.25 30.16 37.58 30.83Q36.91 31.50 36 31.50L36 31.50Q35.09 31.50 34.42 30.83Q33.75 30.16 33.75 29.25ZM2.25 38.25L2.25 38.25Q2.25 33.86 3.41 29.58Q4.57 25.31 6.73 21.50Q8.89 17.68 11.97 14.50Q15.05 11.32 18.88 9.14L18.88 9.14Q19.41 8.82 20.04 8.82L20.04 8.82Q20.95 8.82 21.62 9.49Q22.29 10.16 22.29 11.07L22.29 11.07Q22.29 11.78 21.99 12.20Q21.69 12.62 21.16 13.01L21.16 13.01Q19.93 13.85 18.76 14.64Q17.58 15.43 16.45 16.45L16.45 16.45Q14.20 18.49 12.41 20.99Q10.62 23.48 9.35 26.26Q8.09 29.04 7.42 32.03Q6.75 35.02 6.75 38.07L6.75 38.07Q6.75 42.15 7.79 45.90Q8.82 49.64 10.71 52.91Q12.59 56.18 15.26 58.87Q17.93 61.56 21.18 63.47Q24.43 65.39 28.18 66.45Q31.92 67.50 36 67.50L36 67.50Q40.08 67.50 43.82 66.45Q47.57 65.39 50.82 63.47Q54.07 61.56 56.74 58.87Q59.41 56.18 61.29 52.91Q63.18 49.64 64.21 45.88Q65.25 42.12 65.25 38.07L65.25 38.07Q65.25 35.02 64.58 32.03Q63.91 29.04 62.65 26.26Q61.38 23.48 59.59 20.99Q57.80 18.49 55.55 16.45L55.55 16.45Q54.42 15.43 53.24 14.64Q52.07 13.85 50.84 13.01L50.84 13.01Q50.31 12.62 50.01 12.20Q49.71 11.78 49.71 11.07L49.71 11.07Q49.71 10.16 50.38 9.49Q51.05 8.82 51.96 8.82L51.96 8.82Q52.59 8.82 53.12 9.14L53.12 9.14Q56.95 11.32 60.03 14.50Q63.11 17.68 65.27 21.50Q67.43 25.31 68.59 29.58Q69.75 33.86 69.75 38.25L69.75 38.25Q69.75 42.89 68.54 47.20Q67.32 51.50 65.13 55.27Q62.93 59.03 59.85 62.10Q56.78 65.18 53.02 67.38Q49.25 69.57 44.95 70.79Q40.64 72 36 72L36 72Q31.32 72 27.02 70.79Q22.71 69.57 18.97 67.38Q15.22 65.18 12.15 62.10Q9.07 59.03 6.87 55.28Q4.68 51.54 3.46 47.21Q2.25 42.89 2.25 38.25Z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <label id="simulation-hover" class="hidden">Submit</label>
+
+
+            </div>
+        </div>
+
+        <div class="bottom-row">
+            
+            <div class="section">
+                <label class="low-content">Username:</label>
+                <input id="name-input" class="low-content" type="text" name="username" value="User"/>
+                <div align-items="center">
+                    <span>
+                        <input id="input-password" name="input-type" class="radio" type="radio" oninput="updateMethod()"/>
+                        <label class="low-content">Password</label>
+                    </span>
+                    <span>
+                        <input checked=true id="input-pin" name="input-type" class="radio" type="radio" oninput="updateMethod()"/>
+                        <label class="low-content">Pin</label>
+                    </span>
+                </div>
+                <label id="pin-count" class="low-content pin-slide">Pin Digits: 6</label>
+                <input id="pin-digits" class="slider pin-slide" type="range" min=4 max=20 value=6 oninput="updateMethod()"/>
+                <label class="low-content">Internet Mode:</label>
+                <select id="internet-select">
+                    <option class="material-symbols-outlined" value="3" selected="true">&#xe63e; 3 Bars</option>
+                    <option value="2">&#xe4d9; 2 Bars</option>
+                    <option value="1">&#xe4ca; 1 Bar</option>
+                    <option value="4">🔌 Ethernet</option>
+                    <option value="0">🌐 None</option>
+                </select>
+            </div>
+            
+            <div class="section">
+                <img id="background-display" class="low-content shadowed" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6gSpMuSPA_LnfguPsgO8IYdbnB1vIGrGlKw&s"/>
+                <button onclick="uploadBackground()" class="low-content min-button">Upload Image</button>
+            </div>
+
+            <div class="section">
+                <img id="icon-display" class="low-content shadowed" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPIyvw1OJ3q7xs4Jo5KiMapTfkkKnCnrl-vg&s"/>
+                <button onclick="uploadIcon()" id="icon-upload" class="low-content min-button">Upload Icon</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+        <div class="output-div">
+            <p id="outputText">
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    let mainFrame = document.getElementById("simulation-frame");
+
+    let backgroundDisplay = document.getElementById("background-display");
+    let iconDisplay = document.getElementById("icon-display");
+    let usernameInput = document.getElementById("name-input");
+    let passwordInput = document.getElementById("input-password");
+    let pinInput = document.getElementById("input-pin");
+    let pinSlider = document.getElementById("pin-digits");
+    let pinCount = document.getElementById("pin-count");
+    let outputText = document.getElementById("outputText");
+    let internetSelect = document.getElementById("internet-select");
+
+    // ===== CONFIG =====
+    const DEFAULT_ICON = "https://i.postimg.cc/1RKpc6Tc/Untitled.png";
+    const DEFAULT_BACKGROUND = "https://i.postimg.cc/2yP4VfQh/default-Background.jpg";
+    const maskChar = "●";
+
+
+    var simulationId = 0;
+    var onLogin = false;
+    var loginCounter = 0;
+    var enteredPass = "";
+    var maskInput = true;
+    var passEntered = false;
+    var mousePos = [0,0];
+    var internetMode = 3;
+
+    let simulationBackground = document.getElementById("simulation-background");
+    let simulationDate = document.getElementById("simulation-date");
+    let simulationTime = document.getElementById("simulation-time");
+    let simulationLogin = document.getElementById("loginFrame");
+    let simulationIcon = document.getElementById("simulation-icon");
+    let simulationName = document.getElementById("simulation-name");
+    let simulationPinImage = document.getElementById("simulation-pin-image");
+    let simulationPinLabel = document.getElementById("simulation-pin-label");
+    let simulationInputContainer = document.getElementById("simulation-input-container");
+    let simulationInput = document.getElementById("simulation-input");
+    let simulationPasswordInput = document.getElementById("simulation-password-input");
+    let simulationShowInput = document.getElementById("simulation-show-input");
+    let simulationForgot = document.getElementById("simulation-forgot");
+    let simulationHover = document.getElementById("simulation-hover");
+    let simulationWrong = document.getElementById("simulation-wrong");
+    let simulationAgain = document.getElementById("simulation-again");
+    let simulationThink = document.getElementById("simulation-think");
+    let simulationUsers = document.getElementById("simulation-users");
+    let simulationBackgroundTemp = document.getElementById("simulation-background-temp");
+    let simulationPowerButton = document.getElementById("simulation-power-button");
+    let simulationAccessButton = document.getElementById("simulation-accessability-button");
+    let simulationInternetButton = document.getElementById("simulation-internet-button");
+    let simulationInternetBehind = document.getElementById("simulation-internet-behind");
+    let simulationButtons = document.getElementById("simulation-buttons");
+
+
+    internetSelect.addEventListener("change", () => {
+      const value = internetSelect.value;
+
+      selectInternetPath(value);
+    });
+
+    function selectInternetPath(mode) {
+        internetMode = mode;
+        for (let i = 0; i < 5; i++) {
+            let path = document.getElementById("simulation-internet-" + i);
+            path.classList.add("hidden-path");
+        }
+        let path = document.getElementById("simulation-internet-" + internetMode);
+        path.classList.remove("hidden-path");
+        if (internetMode > 0 && internetMode < 3) {
+            simulationInternetBehind.classList.remove("hidden-path");
+        } else {
+            simulationInternetBehind.classList.add("hidden-path");
+        }
+        saveInternetMode(internetMode);
+    }
+
+
+    function selectSimulationRow(index) {
+        let parent = simulationUsers.querySelector("tbody")
+
+        for (let row of parent.children) {
+            let cell = row.querySelector("td");
+            cell.classList.remove("simulation-user-selected");
+        }
+
+        let selRow = document.getElementById(`simulation-user-${index}`);
+
+        selRow.classList.add("simulation-user-selected");
+
+    }
+
+    function loadSimulationUsers() {
+        let parent = simulationUsers.querySelector("tbody")
+
+        parent.replaceChildren();
+
+        for (let i in users) {
+            let user = users[i];
+            let row = createSimulationUser(user, i);
+            parent.appendChild(row);
+        }
+        selectSimulationRow(simulationId);
+
+        if (users.length > 1 && onLogin) {
+            simulationUsers.classList.remove("hidden");
+        } else {
+            simulationUsers.classList.add("hidden");
+        }
+    }
+
+    function createSimulationUser(user, index) {
+        const tr = document.createElement("tr");
+        var image = user.icon;
+        if (image == DEFAULT_ICON) image = "https://i.postimg.cc/mDx8FN1v/guest.png";
+
+        tr.innerHTML = `
+            <td class="simulation-user" id="simulation-user-${index}">
+                <button class="simulation-user-button" onclick="updateSimulationUser(${index})">
+                    <img class="simulation-user-icon" src="${image}">
+                    <label class="simulation-user-name">${user.name}</label>
+                </button>
+            </td>
+        `;
+
+        return tr;
+    }
+
+
+    function tryAgain() {
+        if (!passEntered) return;
+        passEntered = false;
+        simulationWrong.classList.add("hidden");
+        simulationAgain.classList.add("hidden");
+
+        if (users[simulationId].method !== 0) {
+            simulationPinImage.classList.remove("hidden");
+            simulationPinLabel.classList.remove("hidden");
+            playPinAnimation();
+        }
+
+        
+        simulationInputContainer.classList.remove("hidden");
+        simulationForgot.classList.remove("hidden");
+        simulationInput.focus();
+    }
+
+    function openLogin() {
+        simulationAgain.classList.add("force-active");
+        simulationInput.classList.add("force-active");
+        if (onLogin) return;
+        onLogin = true;
+
+        simulationDate.style.marginTop = "150px";
+        simulationDate.style.opacity = "0";
+
+        simulationTime.style.marginTop = "10px";
+        simulationTime.style.opacity = "0";
+
+        simulationLogin.classList.remove("hidden");
+        simulationButtons.classList.remove("hidden");
+        if (users.length > 1) {
+            simulationUsers.classList.remove("hidden");
+        }
+
+        setTimeout(function() {
+            simulationBackground.style.filter = "blur(8px)";
+            simulationBackground.style.transform = "scale(1.02)";
+            simulationBackgroundTemp.style.filter = "blur(8px)";
+            simulationBackgroundTemp.style.transform = "scale(1.02)";
+
+            simulationLogin.style.opacity = 1;
+            simulationButtons.style.opacity = 1;
+            simulationUsers.style.opacity = 1;
+        }, 50);
+
+        playPinAnimation();
+        setCloseure();
+
+    }
+
+    function closeLogin() {
+        if (!onLogin) return;
+        onLogin = false;
+
+        simulationDate.style.transition = "none";
+        simulationDate.style.marginTop = "300px";
+        simulationDate.style.opacity = "1";
+
+        simulationTime.style.transition = "none";
+        simulationTime.style.marginTop = "160px";
+        simulationTime.style.opacity = "1";
+
+        simulationBackground.style.filter = "blur(0px)";
+        simulationBackground.style.transform = "scale(1)";
+        simulationBackgroundTemp.style.filter = "blur(0px)";
+        simulationBackgroundTemp.style.transform = "scale(1)";
+
+        simulationLogin.style.transition = "none";
+        simulationLogin.style.opacity = 0;
+        simulationButtons.style.opacity = 0;
+        simulationUsers.style.opacity = 0;
+        simulationLogin.classList.add("hidden");
+        simulationButtons.classList.add("hidden");
+        simulationUsers.classList.add("hidden");
+
+        simulationDate.style.transition = "all 0.15s ease";
+        simulationTime.style.transition = "all 0.15s ease";
+
+        simulationLogin.style.transition = "all 0.25s ease";
+        tryAgain();
+    }
+
+    function checkPassword() {
+        if (passEntered) return;
+        passEntered = true;
+        simulationInputContainer.classList.add("hidden");
+        simulationForgot.classList.add("hidden");
+
+
+
+        simulationThink.classList.remove("hidden");
+        startFromBeginning(simulationThink);
+
+        setTimeout(function () {
+            simulationPinLabel.textContent = "Welcome";
+            simulationInput.value = "";
+        }, 50);
+        
+
+
+
+        if (users[simulationId].method > 0 && enteredPass.length == 0) {
+            simulationWrong.textContent = "Provide a PIN.";
+        } else if (users[simulationId].method === 0) {
+            simulationWrong.textContent = "The password is incorrect. Try again.";
+        } else {
+            simulationWrong.textContent = "The PIN is incorrect. Try again.";
+        }
+        if (enteredPass != "") outputText.textContent += "\n" + enteredPass;
+        enteredPass = "";
+        simulationShowInput.classList.add("hidden")
+        setTimeout(function () {
+            simulationThink.classList.add("hidden");
+            simulationPinImage.classList.add("hidden");
+            simulationPinLabel.classList.add("hidden");
+            simulationWrong.classList.remove("hidden");
+            simulationAgain.classList.remove("hidden");
+            simulationPinLabel.textContent = "Enter Your PIN";
+            simulationWrong.focus();
+        }, 100);
+        
+    }
+
+    async function setCloseure() {
+        while(onLogin) {
+
+            loginCounter += 1;
+
+            if (loginCounter > 30) {
+                closeLogin();
+                loginCounter = 0;
+                break;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+    }
+
+    function updateSimulationUser(index) {
+        if (index !== undefined) {
+            let user = users[index];
+            let oldBackground = simulationBackground.src;
+
+            // Only animate if the background is actually different
+            if (oldBackground !== user.background) {
+                
+                setTimeout(function () {
+                    // 1. Set the background behind to the CURRENT image
+                    simulationBackgroundTemp.src = oldBackground;
+                    
+                    // 2. Hide the main background instantly and swap its source
+                    simulationBackground.style.transition = "none";
+                    simulationBackground.style.opacity = "0";
+                    simulationBackground.src = user.background;
+
+                    // 3. Force a reflow so the browser registers the opacity 0
+                    simulationBackground.offsetHeight; 
+
+                    // 4. Fade the main background back in over 1 second
+                    simulationBackground.style.transition = "opacity 1.75s cubic-bezier(0.3, 0, 0.7, 1), filter 0.25s ease, transform 0.25s ease";
+                    simulationBackground.style.opacity = "1";
+                },300);
+            }
+
+            simulationId = index;
+            selectSimulationRow(index);
+        }
+
+        // Continue with the rest of your existing logic
+        let user = users[simulationId];
+        simulationIcon.src = user.icon;
+        simulationName.textContent = user.name;
+
+        let method = user.method;
+        if (!method) {
+            simulationPinImage.classList.add("hidden"); 
+            simulationPinLabel.classList.add("hidden");
+            simulationInput.placeholder = "Password";
+            simulationForgot.textContent = "I forgot my password";
+            simulationPasswordInput.classList.remove("hidden");
+        } else {
+            simulationPinImage.classList.remove("hidden");
+            simulationPinLabel.classList.remove("hidden"); 
+            simulationInput.placeholder = "PIN";
+            simulationForgot.textContent = "I forgot my PIN";
+            simulationPasswordInput.classList.add("hidden");
+            playPinAnimation();
+        }
+    }
+
+    document.addEventListener("mousemove", (e) => {
+        mousePos = [e.clientX, e.clientY];
+    });
+
+    usernameInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            updateName();
+        }
+    });
+
+    // When user presses the button
+    simulationShowInput.addEventListener("mousedown", () => {
+        simulationInput.classList.add("force-active");
+        maskInput = false;
+        updateInputDisplay();
+    });
+
+    // When user releases the button or moves mouse away
+    simulationShowInput.addEventListener("mouseup", () => {
+        simulationInput.focus();
+        simulationInput.classList.remove("force-active");
+        maskInput = true;
+        updateInputDisplay();
+    });
+
+    simulationShowInput.addEventListener("mouseleave", () => {
+        simulationInput.focus();
+        simulationInput.classList.remove("force-active");
+        maskInput = true;
+        updateInputDisplay();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && passEntered && e.target.id != "simulation-input") {
+        simulationAgain.click();
+      }
+    });
+
+    function startFromBeginning(gif) {
+      gif.src = gif.src;
+    }
+
+
+    function updateInputDisplay() {
+        if (maskInput) {
+            simulationInput.value = maskChar.repeat(enteredPass.length);
+        } else {
+            simulationInput.value = enteredPass;
+        }
+
+        if (enteredPass.length > 0 ) {
+            simulationShowInput.classList.remove("hidden");
+        } else {
+            simulationShowInput.classList.add("hidden");
+        }
+    }
+
+    simulationInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            checkPassword();
+        }
+    });
+
+    simulationInput.addEventListener("input", (e) => {
+        loginCounter = 0;
+        const raw = e.target.value;
+
+        const lastChar = raw.slice(-1);
+
+        if (raw.length < enteredPass.length) {
+            // backspace or delete
+            enteredPass = enteredPass.slice(0, raw.length);
+        } else if (raw.length > enteredPass.length) {
+            // new character added
+            if (users[simulationId].method === 0 || /^\d$/.test(lastChar)) {
+                enteredPass += lastChar;
+                if (enteredPass.length >= users[simulationId].method && users[simulationId].method !== 0) {
+                    updateInputDisplay();
+                    checkPassword();
+                    return;
+                }
+            }
+        }
+
+        updateInputDisplay();
+    });
+
+    function uploadBackground() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+
+        input.onchange = function (event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const imageSrc = e.target.result; // THIS is your usable string
+
+                // Example usage:
+                users[currentIndex].background = imageSrc;
+                backgroundDisplay.src = imageSrc;
+                saveUsers(users);
+                updateSimulationUser();
+            };
+
+            reader.readAsDataURL(file);
+        };
+
+        input.click();
+    }
+
+    function uploadIcon() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+
+        input.onchange = function (event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const imageSrc = e.target.result; // THIS is your usable string
+
+                // Example usage:
+                users[currentIndex].icon = imageSrc;
+                iconDisplay.src = imageSrc;
+                saveUsers(users);
+                let image = document.getElementById(`user-icon-${currentIndex}`);
+                image.src = imageSrc;
+                updateSimulationUser();
+            };
+
+            reader.readAsDataURL(file);
+        };
+
+        input.click();
+    }
+
+    function updateName() {
+        let name = usernameInput.value;
+        users[currentIndex].name = name;
+        saveUsers(users);
+
+        let label = document.getElementById(`user-name-${currentIndex}`);
+        label.textContent = name;
+        updateSimulationUser();
+        loadSimulationUsers();
+    }
+
+    function updateMethod() {
+        var method = 0;
+
+        if (passwordInput.checked) {
+            document.querySelectorAll(".pin-slide").forEach(el => {
+                el.classList.add("hidden");
+            });
+            pinSlider.value = 6;
+        } else {
+            document.querySelectorAll(".pin-slide").forEach(el => {
+                el.classList.remove("hidden");
+            });
+            method = pinSlider.value;
+            pinCount.textContent = "Pin Digits: " + pinSlider.value;
+        }
+
+        users[currentIndex].method = method;
+        saveUsers(users);
+        updateSimulationUser();
+        loadSimulationUsers();
+    }
+
+
+
+
+
+
+
+    // ===== STORAGE =====
+    function saveUsers(users) {
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+
+    function loadUsers() {
+        return JSON.parse(localStorage.getItem("users")) || [];
+    }
+
+    function saveInternetMode(mode) {
+        localStorage.setItem("internetMode", mode.toString());
+    }
+
+    function loadInternetMode() {
+        const value = localStorage.getItem("internetMode");
+        return value !== null ? parseInt(value, 10) : 3; // default = 0
+    }
+
+    // ===== STATE =====
+    let users = loadUsers();
+    var currentIndex = 0
+
+    // ===== CREATE USER =====
+    function createUser() {
+        const newUser = {
+            name: "User",
+            icon: DEFAULT_ICON,
+            background: DEFAULT_BACKGROUND,
+            method: 6
+        };
+
+        users.push(newUser);
+        saveUsers(users);
+        return newUser;
+    }
+
+    // ===== INIT =====
+    function initUsers() {
+        users = loadUsers();
+
+        if (users.length === 0) {
+            createUser();
+        }
+    }
+
+    // ===== RENDER =====
+    function renderUsers() {
+        const table = document.getElementById("usersScroll");
+
+        // remove all except add row
+        table.querySelectorAll("tr:not(#add-row)").forEach(r => r.remove());
+
+        // Pass the index (i) to the insert function
+        users.forEach((user, i) => {
+            addUserAsSecondToLast(user, i);
+        });
+        selectBox(currentIndex);
+    }
+
+    // ===== INSERT =====
+    function addUserAsSecondToLast(user, index) {
+        const addRow = document.getElementById("add-row");
+        const parent = addRow.parentElement; 
+        const newRow = createUserRow(user, index); // Pass index here
+
+        parent.insertBefore(newRow, addRow);
+    }
+
+    // ===== DOM ROW =====
+    function createUserRow(user, index) {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td id="user-box-${index}" class="user-boxes">
+                <button class="cell-button" onclick="showUser(${index})">
+                    <div class="cell-content">
+                        <img id="user-icon-${index}" class="circle-img" src="${user.icon}">
+                        <span id="user-name-${index}" class="username-display">${user.name}</span>
+                        <span class="min-button" onclick="event.stopPropagation(); removeUser(${index})">
+                            <img width="30px" height="30px" src="https://img.icons8.com/ios7/600/FA5252/trash.png">
+                        </span>
+                    </div>
+                </button>
+            </td>
+        `;
+
+        return tr;
+    }
+
+    function showUser(index) {
+        currentIndex = index;
+        var user = users[index];
+
+        usernameInput.value = user.name;
+        passwordInput.checked = (user.method == 0);
+        pinInput.checked = (user.method != 0);
+
+        if (passwordInput.checked) {
+            document.querySelectorAll(".pin-slide").forEach(el => {
+                el.classList.add("hidden");
+            });
+            pinSlider.value = 6;
+        } else {
+            document.querySelectorAll(".pin-slide").forEach(el => {
+                el.classList.remove("hidden");
+            });
+            pinSlider.value = user.method;
+            pinCount.textContent = "Pin Digits: " + pinSlider.value;
+        }
+
+        backgroundDisplay.src = user.background;
+        iconDisplay.src = user.icon;
+
+        renderUsers();
+
+    }
+
+    function selectBox(index) {
+        let box = document.getElementById(`user-box-${index}`);
+        box.classList.add("selectedBox");
+    }
+
+
+    // ===== DELETE USER =====
+    function removeUser(index) {
+        if (currentIndex == index && currentIndex > 0) {
+            showUser(currentIndex - 1);
+        } else if (currentIndex == index && users.length > 1) {
+            showUser(currentIndex);
+        } else if (currentIndex == index) {
+            return;
+        }
+
+        // Remove 1 element at the specified index
+        users.splice(index, 1);
+        
+        saveUsers(users);
+        
+        // We MUST re-render everything so the remaining 
+        // buttons get updated with their new indices
+        renderUsers();
+        loadSimulationUsers();
+    }
+
+    // ===== ADD USER =====
+    function addUser() {
+        createUser();
+        renderUsers();
+        loadSimulationUsers();
+    }
+
+    // ===== FULLSCREEN =====
+    function fullscreenMain() {
+        mainFrame.requestFullscreen();
+    }
+
+    function runOnMinuteChange(callback) {
+        function schedule() {
+            const now = new Date();
+
+            // ms until next minute starts
+            const msUntilNextMinute =
+                (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+
+            setTimeout(() => {
+                callback();   // run at minute change
+                schedule();   // schedule next one
+            }, msUntilNextMinute);
+        }
+
+        schedule();
+    }
+
+    function updateMinute() {
+        simulationTime.textContent = new Date().toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit"
+        }).replace(" AM", "").replace(" PM", "");
+    }
+
+    // Make sure it doesn't loop
+    simulationPinImage.loop = false;
+
+    // Optional: prevent user controls if you want it "API controlled"
+    simulationPinImage.controls = false;
+
+    function playPinAnimation() {
+      simulationPinImage.currentTime = 0;   // restart from beginning
+      simulationPinImage.play();
+    }
+
+    function setupHoverText(element, hoverText, delay = 1000) {
+        let timer = null;
+        let active = false;
+
+        function show() {
+            simulationHover.style.left = mousePos[0] + "px";
+            simulationHover.style.top = (mousePos[1] - 55) + "px";
+            simulationHover.textContent = hoverText;
+            simulationHover.classList.remove("hidden");
+        }
+
+        function hide() {
+            simulationHover.classList.add("hidden");
+        }
+
+        function reset() {
+            clearTimeout(timer);
+            timer = null;
+            active = false;
+            hide();
+        }
+
+        element.addEventListener("mouseenter", () => {
+            active = true;
+
+            timer = setTimeout(() => {
+                if (active) show();
+            }, delay);
+        });
+
+        element.addEventListener("mouseleave", () => {
+            reset();
+        });
+    }
+
+    // When video ends, freeze on last frame
+    simulationPinImage.addEventListener("ended", () => {
+      simulationPinImage.pause();
+      
+      // Force last frame (important for some browsers)
+      simulationPinImage.currentTime = simulationPinImage.duration;
+    });
+
+    // ===== START =====
+    initUsers();
+    renderUsers();
+    showUser(0);
+    updateSimulationUser();
+    updateMinute();
+    runOnMinuteChange(updateMinute);
+    setupHoverText(simulationPasswordInput, "Submit");
+    setupHoverText(simulationPowerButton, "Power");
+    setupHoverText(simulationAccessButton, "Accessibility");
+    setupHoverText(simulationInternetButton, "Internet");
+    loadSimulationUsers();
+
+    internetMode = loadInternetMode();
+    selectInternetPath(internetMode);
+    internetSelect.value = internetMode;
+
+    simulationDate.textContent = new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric"
+    });
+
+    
+</script>
+
+</body>
+</html>
