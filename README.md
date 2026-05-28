@@ -1,6 +1,6 @@
 # Windows 11 Lock Screen Simulator
 
-The windows 11 lock screen simulator can be used to simulate the windows 11 lock screen. It is designed to be a visual replica of the lock screen, and includes animations to make it feel real. It can be used to test the lock screen, screenshot the lock screen, or even trick your friends into entering their password. It is very simple to use, and can be used by anyone.
+The windows 11 lock screen simulator can be used to simulate the windows 11 lock screen. It is designed to be a visual replica of the lock screen, and includes animations to make it feel real. Uses include testing the lock screen or screenshoting the lock screen, and is very simple to use.
 
 ## Use
 
